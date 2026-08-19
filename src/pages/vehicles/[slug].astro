@@ -1,0 +1,196 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import CompareToggleButton from '../../components/CompareToggleButton.astro';
+import VehicleCard from '../../components/VehicleCard.astro';
+import SpecItem from '../../components/SpecItem.astro';
+import { vehicles } from '../../data/vehicles';
+import { formatRupiah, formatNumber } from '../../lib/format';
+
+export function getStaticPaths() {
+ return vehicles.map((vehicle) => ({ params: { slug: vehicle.slug }, props: { vehicle } }));
+}
+
+const { vehicle } = Astro.props as { vehicle: (typeof vehicles)[number] };
+
+const related = vehicles
+ .filter((v) => v.id !== vehicle.id && (v.brandSlug === vehicle.brandSlug || v.type === vehicle.type))
+ .slice(0, 3);
+
+const gallery = vehicle.gallery?.length ? vehicle.gallery : [vehicle.image];
+---
+
+<Layout title={vehicle.name} description={vehicle.description} image={vehicle.image}>
+ <div class="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+ <Breadcrumb items={[{ label: 'Beranda', href: '/'}, { label: 'Katalog', href: '/vehicles'}, { label: vehicle.name }]} />
+ </div>
+
+ <section class="mx-auto grid max-w-7xl gap-8 px-4 pb-12 pt-6 sm:px-6 lg:grid-cols-5 lg:px-8">
+ <div class="lg:col-span-3">
+ <div class="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
+ <img id="gallery-main-image" src={gallery[0]} alt={vehicle.name} class="aspect-[4/3] w-full object-cover" width="800" height="600"/>
+ </div>
+
+ {
+ gallery.length > 1 && (
+ <div class="mt-3 grid grid-cols-4 gap-3">
+ {gallery.map((src: string, i: number) => (
+ <button
+ type="button"
+ class:list={['gallery-thumb aspect-[4/3] overflow-hidden rounded-xl border-2', i === 0 ?'border-accent-500': 'border-transparent']}
+ data-src={src}
+ aria-label={`Foto ${i + 1}`}
+ >
+ <img src={src} alt="" class="h-full w-full object-cover" loading="lazy" width="200" height="150"/>
+ </button>
+ ))}
+ </div>
+ )
+ }
+
+ <div class="mt-8">
+ <h2 class="mb-4 text-lg font-bold text-neutral-900">Spesifikasi Utama</h2>
+ <dl class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+ <SpecItem icon="Settings2" label="Mesin" value={vehicle.engine} />
+ <SpecItem icon="Zap" label="Tenaga" value={vehicle.power} />
+ <SpecItem icon="Gauge" label="Torsi" value={vehicle.torque} />
+ <SpecItem icon="ArrowLeftRight" label="Transmisi" value={vehicle.transmission} />
+ <SpecItem icon="Fuel" label="Konsumsi BBM" value={vehicle.fuelConsumption} />
+ <SpecItem icon="User" label="Kapasitas" value={`${vehicle.seatingCapacity} Orang`} />
+ </dl>
+ </div>
+
+ <div class="mt-8">
+ <h2 class="mb-4 text-lg font-bold text-neutral-900">Fitur Unggulan</h2>
+ <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+ {
+ vehicle.features.map((f: string) => (
+ <li class="flex items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-700">
+ <Icon name="Check" size={16} class="shrink-0 text-accent-600"/> {f}
+ </li>
+ ))
+ }
+ </ul>
+ </div>
+
+ <div class="mt-8">
+ <h2 class="mb-4 text-lg font-bold text-neutral-900">Fitur Keselamatan</h2>
+ <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+ {
+ vehicle.safetyFeatures.map((f: string) => (
+ <li class="flex items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-700">
+ <Icon name="ShieldCheck" size={16} class="shrink-0 text-accent-600"/> {f}
+ </li>
+ ))
+ }
+ </ul>
+ </div>
+
+ <div class="mt-8">
+ <h2 class="mb-3 text-lg font-bold text-neutral-900">Dimensi</h2>
+ <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+ <div class="rounded-xl border border-neutral-200 p-3">
+ <p class="text-xs text-neutral-500">Panjang</p>
+ <p class="font-semibold text-neutral-900">{formatNumber(vehicle.dimensions.length)} mm</p>
+ </div>
+ <div class="rounded-xl border border-neutral-200 p-3">
+ <p class="text-xs text-neutral-500">Lebar</p>
+ <p class="font-semibold text-neutral-900">{formatNumber(vehicle.dimensions.width)} mm</p>
+ </div>
+ <div class="rounded-xl border border-neutral-200 p-3">
+ <p class="text-xs text-neutral-500">Tinggi</p>
+ <p class="font-semibold text-neutral-900">{formatNumber(vehicle.dimensions.height)} mm</p>
+ </div>
+ <div class="rounded-xl border border-neutral-200 p-3">
+ <p class="text-xs text-neutral-500">Wheelbase</p>
+ <p class="font-semibold text-neutral-900">{formatNumber(vehicle.dimensions.wheelbase)} mm</p>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <aside class="lg:col-span-2">
+ <div class="sticky top-24 rounded-2xl border border-neutral-200 bg-white p-5">
+ <p class="text-xs font-semibold uppercase tracking-wide text-accent-600">
+ {vehicle.brand} &middot; {vehicle.bodyType} &middot; {vehicle.year}
+ </p>
+ <h1 class="mt-1 text-2xl font-bold text-neutral-900">{vehicle.name}</h1>
+ <p class="mt-2 text-3xl font-extrabold text-neutral-900">{formatRupiah(vehicle.price)}</p>
+ <p class="mt-1 text-xs text-neutral-500">Harga OTR, dapat berbeda tiap wilayah</p>
+
+ <div class="mt-5 flex flex-col gap-2.5">
+ <a
+ href={`/calculator?price=${vehicle.price}&name=${encodeURIComponent(vehicle.name)}`}
+ class="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-600 px-4 py-3 text-sm font-semibold text-white hover:bg-accent-700"
+ >
+ <Icon name="Calculator" size={16} /> Hitung Simulasi Kredit
+ </a>
+ <CompareToggleButton vehicleId={vehicle.id} class="w-full justify-center"/>
+ <button
+ type="button"
+ id="share-btn"
+ data-title={vehicle.name}
+ class="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-700 hover:border-accent-500"
+ >
+ <Icon name="Share2" size={16} /> Bagikan
+ </button>
+ </div>
+
+ <p class="mt-5 text-sm leading-relaxed text-neutral-600">{vehicle.description}</p>
+ </div>
+ </aside>
+ </section>
+
+ {
+ related.length > 0 && (
+ <section class="border-t border-neutral-200 bg-neutral-50">
+ <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+ <h2 class="mb-6 text-xl font-bold text-neutral-900">Kendaraan Terkait</h2>
+ <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+ {related.map((v) => (
+ <VehicleCard vehicle={v} />
+ ))}
+ </div>
+ </div>
+ </section>
+ )
+ }
+</Layout>
+
+<script>
+ import { showToast } from '../../scripts/toast';
+
+ const shareBtn = document.getElementById('share-btn');
+ shareBtn?.addEventListener('click', async () => {
+ const title = shareBtn.getAttribute('data-title') || document.title;
+ const url = window.location.href;
+ if (navigator.share) {
+ try {
+ await navigator.share({ title, url });
+ } catch (e) {
+ /* user cancelled share sheet */
+ }
+ } else {
+ try {
+ await navigator.clipboard.writeText(url);
+ showToast('Tautan disalin ke clipboard');
+ } catch (e) {
+ showToast('Gagal menyalin tautan');
+ }
+ }
+ });
+
+ const thumbs = document.querySelectorAll<HTMLButtonElement>('.gallery-thumb');
+ const mainImg = document.getElementById('gallery-main-image') as HTMLImageElement | null;
+ thumbs.forEach((thumb) => {
+ thumb.addEventListener('click', () => {
+ const src = thumb.getAttribute('data-src');
+ if (mainImg && src) mainImg.src = src;
+ thumbs.forEach((t) => t.classList.remove('border-accent-500'));
+ thumbs.forEach((t) => t.classList.add('border-transparent'));
+ thumb.classList.remove('border-transparent');
+ thumb.classList.add('border-accent-500');
+ });
+ });
+</script>

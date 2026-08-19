@@ -1,0 +1,235 @@
+---
+import Icon from './Icon.astro';
+
+const navLinks = [
+ { href: '/', label: 'Beranda', icon: 'House'},
+ { href: '/news', label: 'Berita', icon: 'Newspaper'},
+ { href: '/vehicles', label: 'Katalog', icon: 'CarFront'},
+ { href: '/compare', label: 'Bandingkan', icon: 'ArrowLeftRight'},
+ { href: '/calculator', label: 'Kalkulator', icon: 'Calculator'},
+];
+
+const currentPath = Astro.url.pathname;
+
+function isActive(href: string) {
+ if (href ==='/') return currentPath ==='/';
+ return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+---
+
+<header class="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur">
+ <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+ <a href="/" class="flex shrink-0 items-center gap-2 text-lg font-bold text-neutral-900">
+ <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-600 text-white">
+ <Icon name="CarFront" size={18} />
+ </span>
+ <span>OtoPortal</span>
+ </a>
+
+ <nav class="hidden flex-1 items-center justify-center gap-1 lg:flex" aria-label="Navigasi utama">
+ {
+ navLinks.map((link) => (
+ <a
+ href={link.href}
+ class:list={[
+'inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors',
+ isActive(link.href)
+ ?'bg-accent-50 text-accent-700'
+ : 'text-neutral-600 hover:bg-neutral-100',
+ ]}
+ >
+ <Icon name={link.icon} size={16} />
+ {link.label}
+ </a>
+ ))
+ }
+ </nav>
+
+ <div class="ml-auto flex items-center gap-1.5 sm:gap-2">
+ <button
+ type="button"
+ id="search-trigger"
+ class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-neutral-600 transition-colors hover:border-accent-500 hover:text-accent-600"
+ aria-label="Cari"
+ >
+ <Icon name="Search" size={18} />
+ </button>
+ <button
+ type="button"
+ id="mobile-menu-trigger"
+ class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-neutral-600 lg:hidden"
+ aria-label="Buka menu"
+ aria-expanded="false"
+ >
+ <Icon name="Menu" size={18} />
+ </button>
+ </div>
+ </div>
+</header>
+
+<!-- Mobile drawer -->
+<div id="mobile-menu" class="fixed inset-0 z-[60] hidden">
+ <div id="mobile-menu-backdrop" class="absolute inset-0 bg-black/40"></div>
+ <div
+ id="mobile-menu-panel"
+ class="absolute right-0 top-0 h-full w-[82%] max-w-xs translate-x-full bg-white shadow-xl transition-transform duration-300 ease-out"
+ >
+ <div class="flex items-center justify-between border-b border-neutral-200 px-4 py-4">
+ <span class="text-base font-bold text-neutral-900">Menu</span>
+ <button
+ type="button"
+ id="mobile-menu-close"
+ class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200"
+ aria-label="Tutup menu"
+ >
+ <Icon name="X" size={18} />
+ </button>
+ </div>
+ <nav class="flex flex-col gap-1 p-4" aria-label="Navigasi mobile">
+ {
+ navLinks.map((link) => (
+ <a
+ href={link.href}
+ class:list={[
+'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium',
+ isActive(link.href)
+ ?'bg-accent-50 text-accent-700'
+ : 'text-neutral-700 hover:bg-neutral-100',
+ ]}
+ >
+ <Icon name={link.icon} size={18} /> {link.label}
+ </a>
+ ))
+ }
+ </nav>
+ </div>
+</div>
+
+<!-- Search overlay -->
+<div id="search-overlay" class="fixed inset-0 z-[70] hidden">
+ <div id="search-overlay-backdrop" class="absolute inset-0 bg-black/50"></div>
+ <div class="relative mx-auto mt-16 w-[92%] max-w-2xl rounded-2xl border border-neutral-200 bg-white shadow-2xl">
+ <form id="search-form" action="/search" method="get" class="flex items-center gap-3 border-b border-neutral-200 px-4 py-3">
+ <Icon name="Search" size={18} class="text-neutral-400"/>
+ <input
+ id="search-input"
+ name="q"
+ type="text"
+ autocomplete="off"
+ placeholder="Cari berita, kendaraan, atau brand..."
+ class="flex-1 bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
+ />
+ <button
+ type="button"
+ id="search-close"
+ class="inline-flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+ aria-label="Tutup pencarian"
+ >
+ <Icon name="X" size={16} />
+ </button>
+ </form>
+ <div id="search-results" class="max-h-[60vh] overflow-y-auto p-2"></div>
+ </div>
+</div>
+
+<script>
+ import { loadSearchIndex, filterIndex } from '../scripts/search';
+
+ // ----- Mobile menu -----
+ const menu = document.getElementById('mobile-menu');
+ const panel = document.getElementById('mobile-menu-panel');
+ const openMenuBtn = document.getElementById('mobile-menu-trigger');
+ const closeMenuBtn = document.getElementById('mobile-menu-close');
+ const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+
+ function openMenu() {
+ menu?.classList.remove('hidden');
+ requestAnimationFrame(() => panel?.classList.remove('translate-x-full'));
+ openMenuBtn?.setAttribute('aria-expanded', 'true');
+ document.body.classList.add('overflow-hidden');
+ }
+ function closeMenu() {
+ panel?.classList.add('translate-x-full');
+ openMenuBtn?.setAttribute('aria-expanded', 'false');
+ document.body.classList.remove('overflow-hidden');
+ window.setTimeout(() => menu?.classList.add('hidden'), 300);
+ }
+ openMenuBtn?.addEventListener('click', openMenu);
+ closeMenuBtn?.addEventListener('click', closeMenu);
+ menuBackdrop?.addEventListener('click', closeMenu);
+
+ // ----- Search overlay -----
+ const searchOverlay = document.getElementById('search-overlay');
+ const searchTrigger = document.getElementById('search-trigger');
+ const searchClose = document.getElementById('search-close');
+ const searchBackdrop = document.getElementById('search-overlay-backdrop');
+ const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+ const searchResults = document.getElementById('search-results');
+
+ function openSearch() {
+ searchOverlay?.classList.remove('hidden');
+ window.setTimeout(() => searchInput?.focus(), 50);
+ }
+ function closeSearch() {
+ searchOverlay?.classList.add('hidden');
+ }
+ searchTrigger?.addEventListener('click', openSearch);
+ searchClose?.addEventListener('click', closeSearch);
+ searchBackdrop?.addEventListener('click', closeSearch);
+
+ document.addEventListener('keydown', (e) => {
+ if (e.key ==='Escape') {
+ closeSearch();
+ closeMenu();
+ }
+ if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() ==='k') {
+ e.preventDefault();
+ openSearch();
+ }
+ });
+
+ function escapeHtml(str: string) {
+ return str.replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c] as string);
+ }
+
+ function renderGroup(title: string, items: any[]) {
+ if (!items.length) return '';
+ const rows = items
+ .map(
+ (item) =>`
+ <a href="${item.url}" class="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-neutral-100">
+ ${item.image ?`<img src="${item.image}" alt="" class="h-10 w-10 shrink-0 rounded-lg object-cover"/>`: ''}
+ <span class="min-w-0">
+ <span class="block truncate text-sm font-medium text-neutral-900">${escapeHtml(item.title)}</span>
+ <span class="block truncate text-xs text-neutral-500">${escapeHtml(item.subtitle ??'')}</span>
+ </span>
+ </a>`
+ )
+ .join('');
+ return`<p class="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">${title}</p>${rows}`;
+ }
+
+ let debounceTimer: number | undefined;
+ searchInput?.addEventListener('input', () => {
+ window.clearTimeout(debounceTimer);
+ debounceTimer = window.setTimeout(async () => {
+ const q = searchInput?.value ??'';
+ if (!searchResults) return;
+ if (!q.trim()) {
+ searchResults.innerHTML ='';
+ return;
+ }
+ const index = await loadSearchIndex();
+ const results = filterIndex(index, q);
+ const total = results.vehicles.length + results.news.length + results.brands.length;
+ if (total === 0) {
+ searchResults.innerHTML =
+'<p class="px-3 py-6 text-center text-sm text-neutral-500">Tidak ada hasil ditemukan</p>';
+ return;
+ }
+ searchResults.innerHTML =
+ renderGroup('Kendaraan', results.vehicles) + renderGroup('Berita', results.news) + renderGroup('Brand', results.brands);
+ }, 200);
+ });
+
+</script>

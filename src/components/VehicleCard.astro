@@ -1,0 +1,70 @@
+---
+import Icon from './Icon.astro';
+import { formatRupiah } from '../lib/format';
+
+export interface Props {
+ vehicle: any;
+}
+
+const { vehicle } = Astro.props;
+---
+
+<article
+ class="group relative flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-lg"
+ data-vehicle-card
+ data-id={vehicle.id}
+ data-name={vehicle.name.toLowerCase()}
+ data-brand={vehicle.brandSlug}
+ data-type={vehicle.type}
+ data-year={vehicle.year}
+ data-price={vehicle.price}
+ data-popular={vehicle.popular ? 1 : 0}
+>
+ <div class="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+ <a href={`/vehicles/${vehicle.slug}`} class="block h-full w-full" aria-label={vehicle.name}>
+ <img
+ src={vehicle.image}
+ alt={vehicle.name}
+ loading="lazy"
+ class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+ width="600"
+ height="450"
+ />
+ </a>
+ <span class="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-neutral-700 backdrop-blur">
+ <Icon name={vehicle.type ==='mobil'?'CarFront': 'Bike'} size={12} />
+ {vehicle.type ==='mobil'?'Mobil': 'Motor'}
+ </span>
+ {
+ vehicle.popular && (
+ <span class="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-accent-600 px-3 py-1 text-xs font-semibold text-white">
+ <Icon name="Star" size={12} />
+ Populer
+ </span>
+ )
+ }
+ </div>
+ <div class="flex flex-1 flex-col gap-3 p-4">
+ <div>
+ <p class="text-xs font-medium uppercase tracking-wide text-accent-600">
+ {vehicle.brand} &middot; {vehicle.bodyType}
+ </p>
+ <h3 class="mt-1 text-base font-semibold leading-snug text-neutral-900">
+ <a href={`/vehicles/${vehicle.slug}`} class="hover:text-accent-600">
+ {vehicle.name}
+ </a>
+ </h3>
+ </div>
+ <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500">
+ <span class="inline-flex items-center gap-1"><Icon name="CalendarDays" size={14} /> {vehicle.year}</span>
+ <span class="inline-flex items-center gap-1"><Icon name="Settings2" size={14} /> {vehicle.transmission}</span>
+ </div>
+ <p class="mt-auto text-lg font-bold text-neutral-900">{formatRupiah(vehicle.price)}</p>
+ <a
+ href={`/vehicles/${vehicle.slug}`}
+ class="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-700"
+ >
+ Lihat Detail <Icon name="ChevronRight" size={16} />
+ </a>
+ </div>
+</article>

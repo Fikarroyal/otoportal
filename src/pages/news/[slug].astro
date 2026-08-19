@@ -1,0 +1,97 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import NewsCard from '../../components/NewsCard.astro';
+import { news } from '../../data/news';
+import { formatDate } from '../../lib/format';
+
+export function getStaticPaths() {
+ return news.map((article) => ({ params: { slug: article.slug }, props: { article } }));
+}
+
+const { article } = Astro.props as { article: (typeof news)[number] };
+
+const sameCategory = news.filter((n) => n.id !== article.id && n.category === article.category).slice(0, 3);
+const related = sameCategory.length ? sameCategory : news.filter((n) => n.id !== article.id).slice(0, 3);
+---
+
+<Layout title={article.title} description={article.excerpt} image={article.image}>
+ <div class="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8">
+ <Breadcrumb items={[{ label: 'Beranda', href: '/'}, { label: 'Berita', href: '/news'}, { label: article.title }]} />
+ </div>
+
+ <article class="mx-auto max-w-3xl px-4 pb-14 pt-6 sm:px-6 lg:px-8">
+ <span class="inline-flex items-center rounded-full bg-accent-50 px-3 py-1 text-xs font-semibold text-accent-700">
+ {article.category}
+ </span>
+ <h1 class="mt-4 text-2xl font-bold leading-tight text-neutral-900 sm:text-3xl">{article.title}</h1>
+
+ <div class="mt-4 flex flex-wrap items-center gap-4 border-b border-neutral-200 pb-5 text-sm text-neutral-500">
+ <span class="inline-flex items-center gap-1.5"><Icon name="User" size={14} /> {article.author}</span>
+ <span class="inline-flex items-center gap-1.5"><Icon name="CalendarDays" size={14} /> {formatDate(article.date)}</span>
+ <button
+ type="button"
+ id="news-share-btn"
+ class="ml-auto inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 font-semibold text-neutral-600 hover:border-accent-500"
+ >
+ <Icon name="Share2" size={14} /> Bagikan
+ </button>
+ </div>
+
+ <img src={article.image} alt={article.title} class="mt-6 aspect-[16/9] w-full rounded-2xl object-cover" width="900" height="506"/>
+
+ <div class="prose-content mt-8 space-y-4 text-[15px] leading-relaxed text-neutral-700">
+ {article.content.map((paragraph: string) => <p>{paragraph}</p>)}
+ </div>
+
+ {
+ article.tags?.length > 0 && (
+ <div class="mt-8 flex flex-wrap gap-2 border-t border-neutral-200 pt-6">
+ {article.tags.map((tag: string) => (
+ <span class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">#{tag}</span>
+ ))}
+ </div>
+ )
+ }
+ </article>
+
+ {
+ related.length > 0 && (
+ <section class="border-t border-neutral-200 bg-neutral-50">
+ <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+ <h2 class="mb-6 text-xl font-bold text-neutral-900">Artikel Terkait</h2>
+ <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+ {related.map((a) => (
+ <NewsCard article={a} />
+ ))}
+ </div>
+ </div>
+ </section>
+ )
+ }
+</Layout>
+
+<script>
+ import { showToast } from '../../scripts/toast';
+
+ const btn = document.getElementById('news-share-btn');
+ btn?.addEventListener('click', async () => {
+ const url = window.location.href;
+ const title = document.title;
+ if (navigator.share) {
+ try {
+ await navigator.share({ title, url });
+ } catch (e) {
+ /* user cancelled share sheet */
+ }
+ } else {
+ try {
+ await navigator.clipboard.writeText(url);
+ showToast('Tautan disalin ke clipboard');
+ } catch (e) {
+ showToast('Gagal menyalin tautan');
+ }
+ }
+ });
+</script>

@@ -1,0 +1,33 @@
+---
+import Icon from './Icon.astro';
+---
+
+<div id="compare-bar" class="fixed inset-x-4 bottom-4 z-40 hidden sm:inset-x-auto sm:left-auto sm:right-4">
+ <div class="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-xl">
+ <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-50 text-accent-600">
+ <Icon name="ArrowLeftRight" size={16} />
+ </span>
+ <p class="text-sm text-neutral-700">
+ <span id="compare-count" class="font-semibold text-neutral-900">0</span> kendaraan dipilih
+ </p>
+ <a href="/compare" class="ml-auto whitespace-nowrap text-sm font-semibold text-accent-600 hover:underline">
+ Lihat Perbandingan
+ </a>
+ </div>
+</div>
+
+<script>
+ import { getCompareList } from '../scripts/storage';
+
+ function paint() {
+ const list = getCompareList();
+ const bar = document.getElementById('compare-bar');
+ const count = document.getElementById('compare-count');
+ if (!bar || !count) return;
+ count.textContent = String(list.length);
+ bar.classList.toggle('hidden', list.length === 0);
+ }
+
+ paint();
+ window.addEventListener('compare:change', paint);
+</script>

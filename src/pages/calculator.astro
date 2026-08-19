@@ -1,0 +1,51 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import CreditCalculator from '../components/CreditCalculator.astro';
+---
+
+<Layout title="Kalkulator Kredit" description="Hitung estimasi cicilan kredit kendaraan sesuai harga, DP, tenor, dan bunga pilihan Anda.">
+ <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+ <div class="mb-6 flex items-center gap-3">
+ <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
+ <Icon name="Calculator" size={20} />
+ </span>
+ <div>
+ <h1 class="text-xl font-bold text-neutral-900 sm:text-2xl">Kalkulator Kredit Kendaraan</h1>
+ <p class="text-sm text-neutral-600">
+ Rencanakan cicilan bulanan Anda dengan lebih matang sebelum mengajukan kredit.
+ </p>
+ </div>
+ </div>
+
+ <CreditCalculator />
+ </section>
+</Layout>
+
+<script>
+ function run() {
+ const params = new URLSearchParams(location.search);
+ const price = params.get('price');
+ const name = params.get('name');
+
+ if (price) {
+ const priceInput = document.getElementById('calc-price') as HTMLInputElement | null;
+ if (priceInput) {
+ priceInput.value = price;
+ priceInput.dispatchEvent(new Event('input'));
+ }
+ }
+
+ if (name) {
+ const banner = document.getElementById('calc-context-banner');
+ const bannerText = document.getElementById('calc-context-text');
+ if (banner && bannerText) {
+ bannerText.textContent = `Simulasi untuk ${name}`;
+ banner.classList.remove('hidden');
+ banner.classList.add('flex');
+ }
+ }
+ }
+
+ run();
+</script>

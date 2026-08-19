@@ -1,0 +1,46 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import VehicleCard from '../../components/VehicleCard.astro';
+import FilterBar from '../../components/FilterBar.astro';
+import { vehicles } from '../../data/vehicles';
+import { brands } from '../../data/brands';
+
+const usedBrandSlugs = new Set(vehicles.map((v) => v.brandSlug));
+const availableBrands = brands.filter((b) => usedBrandSlugs.has(b.slug)).map((b) => ({ slug: b.slug, name: b.name }));
+const years = [...new Set(vehicles.map((v) => v.year))].sort((a, b) => b - a);
+---
+
+<Layout title="Katalog Kendaraan" description="Jelajahi katalog lengkap mobil dan motor terbaru lengkap dengan spesifikasi dan harga.">
+ <section class="border-b border-neutral-200 bg-neutral-50">
+ <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+ <h1 class="text-xl font-bold text-neutral-900 sm:text-2xl lg:text-3xl">Katalog Kendaraan</h1>
+ <p class="mt-2 max-w-2xl text-sm text-neutral-600">
+ Temukan kendaraan yang paling sesuai dengan kebutuhan Anda. Bandingkan spesifikasi, harga, dan fitur dari
+ berbagai brand ternama sebelum mengambil keputusan.
+ </p>
+ <div class="relative mt-5 max-w-md">
+ <Icon name="Search" size={18} class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400"/>
+ <input
+ id="catalog-search-input"
+ type="text"
+ placeholder="Cari nama kendaraan..."
+ class="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm text-neutral-900 outline-none focus:border-accent-500"
+ />
+ </div>
+ </div>
+ </section>
+
+ <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+ <FilterBar brands={availableBrands} years={years} />
+
+ <div id="vehicle-grid" class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+ {vehicles.map((vehicle) => <VehicleCard vehicle={vehicle} />)}
+ </div>
+
+ <div id="catalog-empty-state" class="hidden rounded-2xl border border-dashed border-neutral-300 p-12 text-center">
+ <Icon name="Search" size={32} class="mx-auto mb-3 text-neutral-300"/>
+ <p class="text-neutral-500">Tidak ada kendaraan yang cocok dengan filter Anda.</p>
+ </div>
+ </section>
+</Layout>

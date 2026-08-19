@@ -1,0 +1,28 @@
+---
+import Icon from './Icon.astro';
+
+export interface Props {
+ items: { label: string; href?: string }[];
+}
+
+const { items = [] } = Astro.props;
+---
+
+<nav aria-label="Breadcrumb" class="no-scrollbar overflow-x-auto">
+ <ol class="flex items-center gap-1.5 whitespace-nowrap text-sm text-neutral-500">
+ {
+ items.map((item, i) => (
+ <li class="flex items-center gap-1.5">
+ {i > 0 && <Icon name="ChevronRight" size={14} class="shrink-0 text-neutral-300"/>}
+ {item.href ? (
+ <a href={item.href} class="hover:text-accent-600">
+ {item.label}
+ </a>
+ ) : (
+ <span class="font-medium text-neutral-900">{item.label}</span>
+ )}
+ </li>
+ ))
+ }
+ </ol>
+</nav>

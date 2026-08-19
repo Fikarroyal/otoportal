@@ -1,0 +1,176 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import { vehicles } from '../data/vehicles';
+---
+
+<Layout title="Bandingkan Kendaraan" description="Bandingkan spesifikasi lengkap beberapa kendaraan sekaligus.">
+ <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+ <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+ <div>
+ <h1 class="text-xl font-bold text-neutral-900 sm:text-2xl">Bandingkan Kendaraan</h1>
+ <p class="mt-1 text-sm text-neutral-600">
+ Pilih hingga 4 kendaraan untuk melihat perbandingan spesifikasi secara berdampingan.
+ </p>
+ </div>
+ <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+ <div class="relative w-full sm:w-56">
+ <select
+ id="add-compare-select"
+ class="w-full appearance-none rounded-xl border border-neutral-200 bg-white py-2.5 pl-3.5 pr-9 text-sm text-neutral-700 outline-none focus:border-accent-500"
+ >
+ <option value="">Tambah kendaraan</option>
+ </select>
+ <Icon name="ChevronDown" size={16} class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"/>
+ </div>
+ <button
+ type="button"
+ id="clear-compare-btn"
+ class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200 px-3.5 py-2.5 text-sm font-semibold text-neutral-600 transition-colors hover:border-red-400 hover:text-red-500 sm:w-auto"
+ >
+ <Icon name="Trash2" size={16} /> Kosongkan
+ </button>
+ </div>
+ </div>
+
+ <div id="compare-empty" class="hidden rounded-2xl border border-dashed border-neutral-300 p-16 text-center">
+ <Icon name="ArrowLeftRight" size={36} class="mx-auto mb-4 text-neutral-300"/>
+ <p class="mb-4 text-neutral-500">Belum ada kendaraan yang dipilih untuk dibandingkan.</p>
+ <a href="/vehicles" class="inline-flex items-center gap-2 rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-700">
+ Pilih dari Katalog <Icon name="ChevronRight" size={16} />
+ </a>
+ </div>
+
+ <div id="compare-table-wrapper" class="no-scrollbar hidden overflow-x-auto rounded-2xl border border-neutral-200">
+ <table class="w-full min-w-[640px] border-collapse text-sm">
+ <thead>
+ <tr id="compare-head-row" class="border-b border-neutral-200"></tr>
+ </thead>
+ <tbody id="compare-body"></tbody>
+ </table>
+ </div>
+ </section>
+</Layout>
+
+<script define:vars={{ allVehicles: vehicles }}>
+ window.__ALL_VEHICLES__ = allVehicles;
+</script>
+
+<script>
+ import { getCompareList, removeFromCompare, addToCompare, clearCompare } from '../scripts/storage';
+ import { formatRupiah, formatNumber } from '../lib/format';
+ import { showToast } from '../scripts/toast';
+
+ declare global {
+ interface Window {
+ __ALL_VEHICLES__: any[];
+ }
+ }
+
+ const specRows = [
+ { label: 'Harga', get: (v: any) => formatRupiah(v.price) },
+ { label: 'Brand', get: (v: any) => v.brand },
+ { label: 'Tahun', get: (v: any) => v.year },
+ { label: 'Mesin', get: (v: any) => v.engine },
+ { label: 'Tenaga', get: (v: any) => v.power },
+ { label: 'Torsi', get: (v: any) => v.torque },
+ { label: 'Transmisi', get: (v: any) => v.transmission },
+ { label: 'Konsumsi BBM', get: (v: any) => v.fuelConsumption },
+ {
+ label: 'Dimensi (P x L x T)',
+ get: (v: any) =>`${formatNumber(v.dimensions.length)} x ${formatNumber(v.dimensions.width)} x ${formatNumber(v.dimensions.height)} mm`,
+ },
+ { label: 'Kapasitas', get: (v: any) =>`${v.seatingCapacity} Orang`},
+ { label: 'Tangki BBM', get: (v: any) =>`${v.fuelTankCapacity} Liter`},
+ { label: 'Fitur Keselamatan', get: (v: any) => v.safetyFeatures.join(', ') },
+ ];
+
+ function getAll(): any[] {
+ return window.__ALL_VEHICLES__ || [];
+ }
+
+ function escapeHtml(str: string) {
+ return str.replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c] as string);
+ }
+
+ function render() {
+ const all = getAll();
+ const ids = getCompareList();
+ const selected = ids.map((id: string) => all.find((v) => v.id === id)).filter(Boolean);
+
+ const emptyEl = document.getElementById('compare-empty');
+ const wrapperEl = document.getElementById('compare-table-wrapper');
+ const headRow = document.getElementById('compare-head-row');
+ const body = document.getElementById('compare-body');
+ const addSelect = document.getElementById('add-compare-select') as HTMLSelectElement | null;
+
+ if (!emptyEl || !wrapperEl || !headRow || !body || !addSelect) return;
+
+ if (selected.length === 0) {
+ emptyEl.classList.remove('hidden');
+ wrapperEl.classList.add('hidden');
+ } else {
+ emptyEl.classList.add('hidden');
+ wrapperEl.classList.remove('hidden');
+
+ headRow.innerHTML =
+`<th class="sticky left-0 z-10 min-w-[160px] bg-neutral-50 px-4 py-3 text-left font-semibold text-neutral-500">Spesifikasi</th>` +
+ selected
+ .map(
+ (v: any) =>`
+ <th class="min-w-[220px] px-4 py-3 text-left align-top bg-white">
+ <div class="flex items-start justify-between gap-2">
+ <a href="/vehicles/${v.slug}" class="block">
+ <img src="${v.image}" alt="${escapeHtml(v.name)}" class="mb-2 h-24 w-full rounded-lg object-cover"/>
+ <span class="block text-sm font-semibold text-neutral-900">${escapeHtml(v.name)}</span>
+ </a>
+ <button type="button" class="remove-compare-item shrink-0 rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-red-500" data-id="${v.id}" aria-label="Hapus dari perbandingan">&#10005;</button>
+ </div>
+ </th>`
+ )
+ .join('');
+
+ body.innerHTML = specRows
+ .map(
+ (row, i) =>`
+ <tr class="${i % 2 === 0 ?'bg-white': 'bg-neutral-50'} border-b border-neutral-100">
+ <td class="sticky left-0 z-10 ${i % 2 === 0 ?'bg-white': 'bg-neutral-50'} px-4 py-3 font-medium text-neutral-600">${row.label}</td>
+ ${selected.map((v: any) =>`<td class="px-4 py-3 text-neutral-800">${escapeHtml(String(row.get(v)))}</td>`).join('')}
+ </tr>`
+ )
+ .join('');
+
+ body.querySelectorAll('.remove-compare-item').forEach((btn) => {
+ btn.addEventListener('click', () => {
+ const id = btn.getAttribute('data-id');
+ if (id) removeFromCompare(id);
+ showToast('Dihapus dari perbandingan');
+ });
+ });
+ }
+
+ addSelect.innerHTML =
+'<option value="">Tambah kendaraan</option>' +
+ all
+ .filter((v) => !ids.includes(v.id))
+ .map((v) =>`<option value="${v.id}">${escapeHtml(v.name)}</option>`)
+ .join('');
+ }
+
+ document.getElementById('add-compare-select')?.addEventListener('change', (e) => {
+ const target = e.target as HTMLSelectElement;
+ const id = target.value;
+ if (!id) return;
+ const res = addToCompare(id);
+ if (!res.ok && res.reason ==='max') showToast('Maksimal 4 kendaraan untuk dibandingkan');
+ target.value ='';
+ });
+
+ document.getElementById('clear-compare-btn')?.addEventListener('click', () => {
+ clearCompare();
+ showToast('Perbandingan dikosongkan');
+ });
+
+ window.addEventListener('compare:change', render);
+ render();
+</script>

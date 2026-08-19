@@ -1,0 +1,61 @@
+---
+import Icon from './Icon.astro';
+
+export interface Props {
+ vehicleId: string;
+ class?: string;
+}
+
+const { vehicleId, class: className =''} = Astro.props;
+---
+
+<button
+ type="button"
+ class:list={[
+'compare-toggle-btn inline-flex items-center gap-2 rounded-xl border border-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-700 transition-colors hover:border-accent-500',
+ className,
+ ]}
+ data-vehicle-id={vehicleId}
+>
+ <Icon name="ArrowLeftRight" size={16} />
+ <span class="compare-toggle-label">Bandingkan</span>
+</button>
+
+<script>
+ import { isInCompare, addToCompare, removeFromCompare } from '../scripts/storage';
+ import { showToast } from '../scripts/toast';
+
+ function paint(btn: Element) {
+ const id = btn.getAttribute('data-vehicle-id');
+ if (!id) return;
+ const active = isInCompare(id);
+ const label = btn.querySelector('.compare-toggle-label');
+ if (label) label.textContent = active ?'Dalam Perbandingan': 'Bandingkan';
+ btn.classList.toggle('border-accent-500', active);
+ btn.classList.toggle('text-accent-600', active);
+ }
+
+ function init() {
+ document.querySelectorAll('.compare-toggle-btn').forEach((btn) => {
+ paint(btn);
+ btn.addEventListener('click', () => {
+ const id = btn.getAttribute('data-vehicle-id');
+ if (!id) return;
+ if (isInCompare(id)) {
+ removeFromCompare(id);
+ showToast('Dihapus dari perbandingan');
+ } else {
+ const res = addToCompare(id);
+ if (res.ok) showToast('Ditambahkan ke perbandingan');
+ else if (res.reason ==='max') showToast('Maksimal 4 kendaraan untuk dibandingkan');
+ }
+ paint(btn);
+ });
+ });
+ }
+
+ init();
+ window.addEventListener('compare:change', () => {
+ document.querySelectorAll('.compare-toggle-btn').forEach(paint);
+ });
+</script>

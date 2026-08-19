@@ -1,0 +1,85 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<Layout title="Hasil Pencarian" description="Cari berita, kendaraan, dan brand otomotif di OtoPortal.">
+ <section class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+ <div class="mb-6 flex items-center gap-3">
+ <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
+ <Icon name="Search" size={20} />
+ </span>
+ <h1 class="text-xl font-bold text-neutral-900 sm:text-2xl">
+ Hasil pencarian untuk &ldquo;<span id="search-query-label"></span>&rdquo;
+ </h1>
+ </div>
+
+ <div id="search-page-results" class="space-y-8"></div>
+
+ <div id="search-page-empty" class="hidden rounded-2xl border border-dashed border-neutral-300 p-12 text-center">
+ <Icon name="Search" size={32} class="mx-auto mb-3 text-neutral-300"/>
+ <p class="text-neutral-500">Tidak ditemukan hasil. Coba kata kunci lain.</p>
+ </div>
+ </section>
+</Layout>
+
+<script>
+ import { loadSearchIndex } from '../scripts/search';
+
+ function escapeHtml(str: string) {
+ return str.replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c] as string);
+ }
+
+ function cardTemplate(item: any) {
+ return`
+ <a href="${item.url}" class="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-3 transition-colors hover:border-accent-500">
+ ${item.image ?`<img src="${item.image}" alt="" class="h-16 w-20 shrink-0 rounded-xl object-cover"/>`: ''}
+ <span class="min-w-0">
+ <span class="block text-sm font-semibold text-neutral-900">${escapeHtml(item.title)}</span>
+ <span class="block text-xs text-neutral-500">${escapeHtml(item.subtitle ??'')}</span>
+ </span>
+ </a>`;
+ }
+
+ function section(title: string, items: any[]) {
+ if (!items.length) return '';
+ return`<div><h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-400">${title} (${items.length})</h2><div class="grid gap-3 sm:grid-cols-2">${items.map(cardTemplate).join('')}</div></div>`;
+ }
+
+ async function run() {
+ const params = new URLSearchParams(location.search);
+ const q = params.get('q') ||'';
+ const label = document.getElementById('search-query-label');
+ if (label) label.textContent = q;
+
+ const resultsEl = document.getElementById('search-page-results');
+ const emptyEl = document.getElementById('search-page-empty');
+
+ if (!q.trim()) {
+ emptyEl?.classList.remove('hidden');
+ return;
+ }
+
+ const index = await loadSearchIndex();
+ const lowerQ = q.toLowerCase();
+ const match = (item: any) => item.title.toLowerCase().includes(lowerQ) || (item.subtitle ||'').toLowerCase().includes(lowerQ);
+
+ const full = {
+ vehicles: index.vehicles.filter(match),
+ news: index.news.filter(match),
+ brands: index.brands.filter(match),
+ };
+
+ const total = full.vehicles.length + full.news.length + full.brands.length;
+ if (!resultsEl) return;
+
+ if (total === 0) {
+ emptyEl?.classList.remove('hidden');
+ return;
+ }
+
+ resultsEl.innerHTML = section('Kendaraan', full.vehicles) + section('Berita', full.news) + section('Brand', full.brands);
+ }
+
+ run();
+</script>

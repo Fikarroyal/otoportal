@@ -1,0 +1,105 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import NewsCard from '../../components/NewsCard.astro';
+import { news } from '../../data/news';
+
+const categories = [...new Set(news.map((n) => n.category))];
+const sorted = [...news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+---
+
+<Layout title="Berita Otomotif" description="Kumpulan berita, review, dan tips otomotif terbaru.">
+ <section class="border-b border-neutral-200 bg-neutral-50">
+ <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+ <h1 class="text-xl font-bold text-neutral-900 sm:text-2xl lg:text-3xl">Berita Otomotif</h1>
+ <p class="mt-2 max-w-2xl text-sm text-neutral-600">
+ Simak kabar terbaru seputar dunia otomotif, ulasan mendalam, dan tips perawatan kendaraan langsung dari
+ tim redaksi kami.
+ </p>
+ <div class="relative mt-5 max-w-md">
+ <Icon name="Search" size={18} class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400"/>
+ <input
+ id="news-search-input"
+ type="text"
+ placeholder="Cari artikel..."
+ class="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm text-neutral-900 outline-none focus:border-accent-500"
+ />
+ </div>
+ </div>
+ </section>
+
+ <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+ <div class="mb-6 flex flex-wrap items-center gap-2" role="group" aria-label="Filter kategori berita">
+ <button type="button" data-news-category="" class="news-category-btn is-active rounded-full px-4 py-2 text-sm font-semibold transition-colors">
+ Semua
+ </button>
+ {
+ categories.map((cat) => (
+ <button type="button" data-news-category={cat} class="news-category-btn rounded-full px-4 py-2 text-sm font-semibold transition-colors">
+ {cat}
+ </button>
+ ))
+ }
+ </div>
+
+ <div id="news-grid" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+ {sorted.map((article) => <NewsCard article={article} />)}
+ </div>
+
+ <div id="news-empty-state" class="hidden rounded-2xl border border-dashed border-neutral-300 p-12 text-center">
+ <Icon name="Search" size={32} class="mx-auto mb-3 text-neutral-300"/>
+ <p class="text-neutral-500">Tidak ada artikel yang cocok.</p>
+ </div>
+ </section>
+</Layout>
+
+<style>
+  .news-category-btn {
+    border: 1px solid rgb(229 229 229);
+    color: rgb(64 64 64);
+  }
+  .news-category-btn.is-active {
+    background-color: var(--accent-600);
+    border-color: var(--accent-600);
+    color: white;
+  }
+</style>
+
+<script>
+ function init() {
+ const grid = document.getElementById('news-grid');
+ if (!grid) return;
+
+ const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-news-card]'));
+ const catBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.news-category-btn'));
+ const searchInput = document.getElementById('news-search-input') as HTMLInputElement | null;
+ const emptyState = document.getElementById('news-empty-state');
+ let activeCategory ='';
+
+ function apply() {
+ const query = (searchInput?.value ||'').trim().toLowerCase();
+ let visible = 0;
+ cards.forEach((card) => {
+ const matchesCat = !activeCategory || card.dataset.category === activeCategory;
+ const matchesQuery = !query || (card.dataset.title ||'').includes(query);
+ const show = matchesCat && matchesQuery;
+ card.style.display = show ?'': 'none';
+ if (show) visible += 1;
+ });
+ emptyState?.classList.toggle('hidden', visible !== 0);
+ }
+
+ catBtns.forEach((btn) => {
+ btn.addEventListener('click', () => {
+ activeCategory = btn.dataset.newsCategory ||'';
+ catBtns.forEach((b) => b.classList.toggle('is-active', b === btn));
+ apply();
+ });
+ });
+
+ searchInput?.addEventListener('input', apply);
+ apply();
+ }
+
+ init();
+</script>

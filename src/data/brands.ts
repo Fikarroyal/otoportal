@@ -1,0 +1,78 @@
+export const brands = [
+  {
+    id: 'b1',
+    slug: 'toyota',
+    name: 'Toyota',
+    country: 'Jepang',
+    type: 'mobil',
+    logo: 'https://commons.wikimedia.org/wiki/Special:FilePath/Toyota_Logo.svg',
+    description:
+      'Produsen otomotif global yang menghadirkan jajaran MPV, SUV, dan sedan andalan keluarga Indonesia, dikenal irit bahan bakar dan mudah dalam perawatan.',
+  },
+  {
+    id: 'b2',
+    slug: 'honda',
+    name: 'Honda',
+    country: 'Jepang',
+    type: 'keduanya',
+    logo: 'https://commons.wikimedia.org/wiki/Special:FilePath/Honda_Logo.svg',
+    description:
+      'Menghadirkan mobil dan motor dengan karakter mesin yang responsif dan efisien, telah dipercaya jutaan pengendara di Tanah Air.',
+  },
+  {
+    id: 'b3',
+    slug: 'mitsubishi',
+    name: 'Mitsubishi',
+    country: 'Jepang',
+    type: 'mobil',
+    logo: 'https://commons.wikimedia.org/wiki/Special:FilePath/Mitsubishi_logo.svg',
+    description:
+      'Menawarkan MPV dan SUV tangguh dengan desain eksterior tegas, pilihan tepat untuk keluarga aktif yang menyukai petualangan.',
+  },
+  {
+    id: 'b4',
+    slug: 'hyundai',
+    name: 'Hyundai',
+    country: 'Korea Selatan',
+    type: 'mobil',
+    logo: 'https://commons.wikimedia.org/wiki/Special:FilePath/Hyundai_symbol.svg',
+    description: 'Pabrikan asal Korea Selatan yang menghadirkan desain modern serta fitur teknologi lengkap di kelasnya.',
+  },
+  {
+    id: 'b5',
+    slug: 'suzuki',
+    name: 'Suzuki',
+    country: 'Jepang',
+    type: 'keduanya',
+    logo: 'https://commons.wikimedia.org/wiki/Special:FilePath/Suzuki_logo_2025.svg',
+    description: 'Memproduksi mobil dan motor dengan reputasi efisiensi bahan bakar unggul serta daya tahan mesin yang teruji.',
+  },
+  {
+    id: 'b6',
+    slug: 'bmw',
+    name: 'BMW',
+    country: 'Jerman',
+    type: 'mobil',
+    logo: 'https://commons.wikimedia.org/wiki/Special:FilePath/BMW_Roundel.svg',
+    description: 'Merek premium asal Jerman yang identik dengan performa berkendara memukau dan kenyamanan kelas atas.',
+  },
+  {
+    id: 'b7',
+    slug: 'yamaha',
+    name: 'Yamaha',
+    country: 'Jepang',
+    type: 'motor',
+    logo: 'https://commons.wikimedia.org/wiki/Special:FilePath/Yamaha_Motor_logo.svg',
+    description: 'Produsen motor dengan fokus pada performa mesin serta teknologi terkini untuk mobilitas harian yang menyenangkan.',
+  },
+  {
+    id: 'b8',
+    slug: 'vespa',
+    name: 'Vespa',
+    country: 'Italia',
+    type: 'motor',
+    logo: 'https://commons.wikimedia.org/wiki/Special:FilePath/Vespa-logo.svg',
+    description:
+      'Skutik ikonik asal Italia dengan desain klasik nan elegan, memadukan gaya berkendara khas dan sentuhan modern.',
+  },
+];

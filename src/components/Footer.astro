@@ -1,0 +1,56 @@
+---
+import Icon from './Icon.astro';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-neutral-200 bg-white">
+ <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+ <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+ <div>
+ <a href="/" class="flex items-center gap-2 text-lg font-bold text-neutral-900">
+ <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-600 text-white">
+ <Icon name="CarFront" size={18} />
+ </span>
+ <span>OtoPortal</span>
+ </a>
+ <p class="mt-3 text-sm leading-relaxed text-neutral-500">
+ Teman terpercaya untuk berburu kendaraan, membaca ulasan mendalam, dan menyusun rencana kredit sebelum
+ membeli.
+ </p>
+ </div>
+ <div>
+ <p class="text-sm font-semibold text-neutral-900">Jelajahi</p>
+ <ul class="mt-3 space-y-2 text-sm text-neutral-500">
+ <li><a href="/vehicles" class="hover:text-accent-600">Katalog Kendaraan</a></li>
+ <li><a href="/news" class="hover:text-accent-600">Berita Otomotif</a></li>
+ <li><a href="/compare" class="hover:text-accent-600">Bandingkan Kendaraan</a></li>
+ <li><a href="/calculator" class="hover:text-accent-600">Kalkulator Kredit</a></li>
+ </ul>
+ </div>
+ <div>
+ <p class="text-sm font-semibold text-neutral-900">Kategori Berita</p>
+ <ul class="mt-3 space-y-2 text-sm text-neutral-500">
+ <li><a href="/news" class="hover:text-accent-600">Review</a></li>
+ <li><a href="/news" class="hover:text-accent-600">Tips</a></li>
+ <li><a href="/news" class="hover:text-accent-600">Rekomendasi</a></li>
+ <li><a href="/news" class="hover:text-accent-600">Edukasi</a></li>
+ </ul>
+ </div>
+ <div>
+ <p class="text-sm font-semibold text-neutral-900">Lainnya</p>
+ <ul class="mt-3 space-y-2 text-sm text-neutral-500">
+ <li><a href="/search" class="hover:text-accent-600">Cari Kendaraan</a></li>
+ <li><a href="/vehicles" class="hover:text-accent-600">Semua Kendaraan</a></li>
+ </ul>
+ </div>
+ </div>
+ <div class="mt-10 flex flex-col items-center justify-between gap-3 border-t border-neutral-200 pt-6 sm:flex-row">
+ <p class="text-xs text-neutral-400">&copy; {year} OtoPortal. Seluruh data kendaraan bersifat ilustratif.</p>
+ <p class="inline-flex items-center gap-1.5 text-xs text-neutral-400">
+ <Icon name="MapPin" size={13} /> Indonesia
+ </p>
+ </div>
+ <p class="mt-4 text-center text-xs text-neutral-400">Made by Fikarroyal</p>
+ </div>
+</footer>

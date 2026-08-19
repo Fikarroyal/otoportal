@@ -1,0 +1,336 @@
+---
+import Icon from './Icon.astro';
+
+const checklistItems = [
+  { id: 'ktp', label: 'KTP pemohon' },
+  { id: 'kk', label: 'Kartu Keluarga' },
+  { id: 'slip-gaji', label: 'Slip gaji tiga bulan terakhir' },
+  { id: 'npwp', label: 'NPWP' },
+  { id: 'rekening-koran', label: 'Rekening koran tiga bulan terakhir' },
+  { id: 'domisili', label: 'Bukti domisili atau tagihan listrik' },
+];
+---
+
+<div class="grid gap-6 lg:grid-cols-5">
+  <form id="credit-calculator-form" class="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 lg:col-span-3">
+    <p id="calc-context-banner" class="mb-4 hidden items-center gap-2 rounded-xl bg-accent-50 px-3 py-2 text-sm text-accent-700">
+      <Icon name="CarFront" size={16} class="shrink-0" /> <span id="calc-context-text"></span>
+    </p>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="flex flex-col gap-1.5 sm:col-span-2">
+        <label for="calc-price" class="text-sm font-medium text-neutral-700">Harga Kendaraan (Rp)</label>
+        <input
+          id="calc-price"
+          type="number"
+          min="0"
+          step="100000"
+          value="200000000"
+          class="rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none focus:border-accent-500"
+        />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label for="calc-dp" class="text-sm font-medium text-neutral-700">Uang Muka / DP (Rp)</label>
+        <input
+          id="calc-dp"
+          type="number"
+          min="0"
+          step="100000"
+          value="40000000"
+          class="rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none focus:border-accent-500"
+        />
+        <p id="calc-dp-percent" class="text-xs text-neutral-500"></p>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label for="calc-tenor" class="text-sm font-medium text-neutral-700">Tenor</label>
+        <div class="relative">
+          <select
+            id="calc-tenor"
+            class="w-full appearance-none rounded-xl border border-neutral-200 bg-white py-2.5 pl-3.5 pr-9 text-sm text-neutral-900 outline-none focus:border-accent-500"
+          >
+            <option value="12">12 Bulan</option>
+            <option value="24" selected>24 Bulan</option>
+            <option value="36">36 Bulan</option>
+            <option value="48">48 Bulan</option>
+            <option value="60">60 Bulan</option>
+          </select>
+          <Icon name="ChevronDown" size={16} class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+        </div>
+      </div>
+      <div class="flex flex-col gap-1.5 sm:col-span-2">
+        <label for="calc-rate" class="text-sm font-medium text-neutral-700">Suku Bunga per Tahun (%)</label>
+        <input
+          id="calc-rate"
+          type="number"
+          min="0"
+          max="100"
+          step="0.1"
+          value="6.5"
+          class="rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none focus:border-accent-500"
+        />
+      </div>
+    </div>
+
+    <p id="calc-error" class="mt-4 hidden items-center gap-2 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+      <Icon name="AlertCircle" size={16} class="shrink-0" /> <span id="calc-error-text"></span>
+    </p>
+
+    <p class="mt-4 text-xs text-neutral-500">
+      *Simulasi menggunakan metode bunga flat, hanya sebagai estimasi. Angka aktual mengikuti kebijakan lembaga pembiayaan.
+    </p>
+  </form>
+
+  <div class="flex flex-col gap-6 lg:col-span-2">
+    <div class="sticky top-24 rounded-2xl border border-neutral-800 bg-neutral-900 p-6 text-white">
+      <p class="text-sm text-neutral-300">Estimasi Cicilan per Bulan</p>
+      <p id="calc-monthly" class="mt-1 text-3xl font-extrabold">Rp0</p>
+      <div class="mt-6 space-y-3 border-t border-white/10 pt-5 text-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-neutral-400">Uang Muka</span>
+          <span id="calc-out-dp" class="font-semibold">Rp0</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-neutral-400">Pokok Pinjaman</span>
+          <span id="calc-out-principal" class="font-semibold">Rp0</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-neutral-400">Total Bunga</span>
+          <span id="calc-out-interest" class="font-semibold">Rp0</span>
+        </div>
+        <div class="flex items-center justify-between border-t border-white/10 pt-3">
+          <span class="text-neutral-300">Total Pembayaran</span>
+          <span id="calc-out-total" class="font-bold text-accent-400">Rp0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-neutral-200 bg-white p-5">
+      <div class="mb-4 flex items-center gap-3">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-50 text-accent-600">
+          <Icon name="TrendingUp" size={16} />
+        </span>
+        <div>
+          <p class="text-sm font-semibold text-neutral-900">Perbandingan Tenor</p>
+          <p class="text-xs text-neutral-500">Cicilan pada tiap pilihan tenor</p>
+        </div>
+      </div>
+      <div id="tenor-comparison-list" class="space-y-2"></div>
+    </div>
+
+    <div class="rounded-2xl border border-neutral-200 bg-white p-5">
+      <div class="mb-4 flex items-center gap-3">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-50 text-accent-600">
+          <Icon name="Wallet" size={16} />
+        </span>
+        <div>
+          <p class="text-sm font-semibold text-neutral-900">Cek Kemampuan Finansial</p>
+          <p class="text-xs text-neutral-500">Sesuaikan cicilan dengan pendapatan Anda</p>
+        </div>
+      </div>
+      <label for="afford-income" class="text-sm font-medium text-neutral-700">Pendapatan Bulanan (Rp)</label>
+      <input
+        id="afford-income"
+        type="number"
+        min="0"
+        step="100000"
+        placeholder="Contoh: 8000000"
+        class="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none focus:border-accent-500"
+      />
+      <div id="afford-result" class="mt-3 hidden rounded-xl p-3 text-sm"></div>
+      <p class="mt-3 text-xs text-neutral-500">Idealnya cicilan kendaraan tidak melebihi 30% dari pendapatan bulanan Anda.</p>
+    </div>
+
+    <div class="rounded-2xl border border-neutral-200 bg-white p-5">
+      <div class="mb-4 flex items-center gap-3">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-50 text-accent-600">
+          <Icon name="ClipboardCheck" size={16} />
+        </span>
+        <div>
+          <p class="text-sm font-semibold text-neutral-900">Checklist Dokumen Kredit</p>
+          <p class="text-xs text-neutral-500">
+            <span id="checklist-progress">0</span> dari {checklistItems.length} dokumen siap
+          </p>
+        </div>
+      </div>
+      <ul class="space-y-2">
+        {
+          checklistItems.map((item) => (
+            <li>
+              <label class="flex cursor-pointer items-center gap-2.5 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-700 transition-colors hover:border-accent-500">
+                <input
+                  type="checkbox"
+                  data-checklist-id={item.id}
+                  class="checklist-checkbox h-4 w-4 shrink-0 rounded border-neutral-300 text-accent-600 focus:ring-accent-500"
+                />
+                {item.label}
+              </label>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { formatRupiah } from '../lib/format';
+  import { getChecklist, toggleChecklistItem } from '../scripts/storage';
+
+  function el<T extends HTMLElement = HTMLElement>(id: string) {
+    return document.getElementById(id) as T | null;
+  }
+
+  const TENOR_OPTIONS = [12, 24, 36, 48, 60];
+  let lastMonthly = 0;
+  let lastValid = false;
+
+  function updateTenorComparison(price: number, dp: number, rate: number, activeTenor: number) {
+    const container = el('tenor-comparison-list');
+    if (!container) return;
+    const principal = price - dp;
+    container.innerHTML = TENOR_OPTIONS.map((t) => {
+      const years = t / 12;
+      const totalInterest = principal * (rate / 100) * years;
+      const monthly = (principal + totalInterest) / t;
+      const active = t === activeTenor;
+      return `
+        <div class="flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm ${active ? 'border-accent-500 bg-accent-50' : 'border-neutral-200'}">
+          <span class="${active ? 'font-semibold text-accent-700' : 'text-neutral-600'}">${t} Bulan</span>
+          <span class="${active ? 'font-bold text-accent-700' : 'font-semibold text-neutral-900'}">${formatRupiah(Math.round(monthly))}/bulan</span>
+        </div>`;
+    }).join('');
+  }
+
+  function clearTenorComparison() {
+    const container = el('tenor-comparison-list');
+    if (container) {
+      container.innerHTML =
+        '<p class="text-xs text-neutral-400">Lengkapi data kalkulator di sebelah kiri untuk melihat perbandingan.</p>';
+    }
+  }
+
+  function updateAffordability() {
+    const incomeInput = el<HTMLInputElement>('afford-income');
+    const resultEl = el('afford-result');
+    if (!incomeInput || !resultEl) return;
+
+    const income = Number(incomeInput.value);
+    if (!income || income <= 0 || !lastValid) {
+      resultEl.classList.add('hidden');
+      return;
+    }
+
+    const ratio = (lastMonthly / income) * 100;
+    let verdict = '';
+    let colorClass = '';
+    if (ratio <= 30) {
+      verdict = `Estimasi cicilan sekitar ${ratio.toFixed(0)}% dari pendapatan Anda, masih dalam batas aman.`;
+      colorClass = 'bg-green-50 text-green-700';
+    } else if (ratio <= 40) {
+      verdict = `Estimasi cicilan sekitar ${ratio.toFixed(0)}% dari pendapatan Anda, cukup berat namun masih bisa diusahakan.`;
+      colorClass = 'bg-amber-50 text-amber-700';
+    } else {
+      verdict = `Estimasi cicilan sekitar ${ratio.toFixed(0)}% dari pendapatan Anda, tergolong berat. Pertimbangkan DP lebih besar atau tenor lebih panjang.`;
+      colorClass = 'bg-red-50 text-red-700';
+    }
+    resultEl.textContent = verdict;
+    resultEl.className = `mt-3 rounded-xl p-3 text-sm ${colorClass}`;
+  }
+
+  function calculate() {
+    const priceInput = el<HTMLInputElement>('calc-price');
+    const dpInput = el<HTMLInputElement>('calc-dp');
+    const tenorInput = el<HTMLSelectElement>('calc-tenor');
+    const rateInput = el<HTMLInputElement>('calc-rate');
+    if (!priceInput || !dpInput || !tenorInput || !rateInput) return;
+
+    const price = Number(priceInput.value);
+    const dp = Number(dpInput.value);
+    const tenor = Number(tenorInput.value);
+    const rate = Number(rateInput.value);
+
+    const errorEl = el('calc-error');
+    const errorText = el('calc-error-text');
+    const dpPercentEl = el('calc-dp-percent');
+    const monthlyEl = el('calc-monthly');
+    const outDp = el('calc-out-dp');
+    const outPrincipal = el('calc-out-principal');
+    const outInterest = el('calc-out-interest');
+    const outTotal = el('calc-out-total');
+
+    let error = '';
+    if (!price || price <= 0) error = 'Harga kendaraan harus lebih dari 0.';
+    else if (dp < 0) error = 'Uang muka tidak boleh negatif.';
+    else if (dp >= price) error = 'Uang muka tidak boleh lebih besar atau sama dengan harga kendaraan.';
+    else if (rate < 0) error = 'Suku bunga tidak boleh negatif.';
+
+    if (error) {
+      errorEl?.classList.remove('hidden');
+      errorEl?.classList.add('flex');
+      if (errorText) errorText.textContent = error;
+      if (monthlyEl) monthlyEl.textContent = 'Rp0';
+      if (outDp) outDp.textContent = formatRupiah(0);
+      if (outPrincipal) outPrincipal.textContent = formatRupiah(0);
+      if (outInterest) outInterest.textContent = formatRupiah(0);
+      if (outTotal) outTotal.textContent = formatRupiah(0);
+      lastValid = false;
+      lastMonthly = 0;
+      clearTenorComparison();
+      updateAffordability();
+      return;
+    }
+
+    errorEl?.classList.add('hidden');
+    errorEl?.classList.remove('flex');
+
+    const principal = price - dp;
+    const years = tenor / 12;
+    const totalInterest = principal * (rate / 100) * years;
+    const totalPayment = principal + totalInterest;
+    const monthly = totalPayment / tenor;
+
+    if (dpPercentEl) dpPercentEl.textContent = `${((dp / price) * 100).toFixed(1)}% dari harga kendaraan`;
+    if (monthlyEl) monthlyEl.textContent = formatRupiah(Math.round(monthly));
+    if (outDp) outDp.textContent = formatRupiah(dp);
+    if (outPrincipal) outPrincipal.textContent = formatRupiah(principal);
+    if (outInterest) outInterest.textContent = formatRupiah(Math.round(totalInterest));
+    if (outTotal) outTotal.textContent = formatRupiah(Math.round(totalPayment + dp));
+
+    lastValid = true;
+    lastMonthly = monthly;
+    updateTenorComparison(price, dp, rate, tenor);
+    updateAffordability();
+  }
+
+  ['calc-price', 'calc-dp', 'calc-tenor', 'calc-rate'].forEach((id) => {
+    const node = document.getElementById(id);
+    node?.addEventListener('input', calculate);
+    node?.addEventListener('change', calculate);
+  });
+
+  el('afford-income')?.addEventListener('input', updateAffordability);
+
+  calculate();
+
+  // ----- Document checklist -----
+  function paintChecklist() {
+    const done = getChecklist();
+    document.querySelectorAll<HTMLInputElement>('.checklist-checkbox').forEach((cb) => {
+      const id = cb.getAttribute('data-checklist-id');
+      cb.checked = id ? done.includes(id) : false;
+    });
+    const progressEl = el('checklist-progress');
+    const total = document.querySelectorAll('.checklist-checkbox').length;
+    if (progressEl) progressEl.textContent = String(Math.min(done.length, total));
+  }
+
+  document.querySelectorAll<HTMLInputElement>('.checklist-checkbox').forEach((cb) => {
+    cb.addEventListener('change', () => {
+      const id = cb.getAttribute('data-checklist-id');
+      if (id) toggleChecklistItem(id);
+      paintChecklist();
+    });
+  });
+
+  paintChecklist();
+</script>

@@ -1,0 +1,198 @@
+---
+import Icon from './Icon.astro';
+
+export interface Props {
+ brands: { slug: string; name: string }[];
+ years: number[];
+}
+
+const { brands, years } = Astro.props;
+
+const priceRanges = [
+ { value: '', label: 'Semua Harga'},
+ { value: '0-100000000', label: '< Rp100 Juta'},
+ { value: '100000000-300000000', label: 'Rp100 sampai 300 Juta'},
+ { value: '300000000-600000000', label: 'Rp300 sampai 600 Juta'},
+ { value: '600000000-999999999999', label: '> Rp600 Juta'},
+];
+---
+
+<div class="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
+ <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter jenis kendaraan">
+ <button type="button" data-filter-type="" class="filter-type-btn is-active rounded-full px-4 py-2 text-sm font-semibold transition-colors">
+ Semua
+ </button>
+ <button type="button" data-filter-type="mobil" class="filter-type-btn rounded-full px-4 py-2 text-sm font-semibold transition-colors">
+ Mobil
+ </button>
+ <button type="button" data-filter-type="motor" class="filter-type-btn rounded-full px-4 py-2 text-sm font-semibold transition-colors">
+ Motor
+ </button>
+ </div>
+
+ <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+ <div class="flex flex-col gap-1">
+ <label for="filter-brand" class="text-xs font-medium text-neutral-500">Brand</label>
+ <div class="relative">
+ <select
+ id="filter-brand"
+ class="w-full appearance-none rounded-xl border border-neutral-200 bg-white py-2 pl-3.5 pr-9 text-sm text-neutral-700 outline-none focus:border-accent-500"
+ >
+ <option value="">Semua Brand</option>
+ {brands.map((b) => <option value={b.slug}>{b.name}</option>)}
+ </select>
+ <Icon name="ChevronDown" size={16} class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"/>
+ </div>
+ </div>
+ <div class="flex flex-col gap-1">
+ <label for="filter-price" class="text-xs font-medium text-neutral-500">Harga</label>
+ <div class="relative">
+ <select
+ id="filter-price"
+ class="w-full appearance-none rounded-xl border border-neutral-200 bg-white py-2 pl-3.5 pr-9 text-sm text-neutral-700 outline-none focus:border-accent-500"
+ >
+ {priceRanges.map((p) => <option value={p.value}>{p.label}</option>)}
+ </select>
+ <Icon name="ChevronDown" size={16} class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"/>
+ </div>
+ </div>
+ <div class="flex flex-col gap-1">
+ <label for="filter-year" class="text-xs font-medium text-neutral-500">Tahun</label>
+ <div class="relative">
+ <select
+ id="filter-year"
+ class="w-full appearance-none rounded-xl border border-neutral-200 bg-white py-2 pl-3.5 pr-9 text-sm text-neutral-700 outline-none focus:border-accent-500"
+ >
+ <option value="">Semua Tahun</option>
+ {years.map((y) => <option value={y}>{y}</option>)}
+ </select>
+ <Icon name="ChevronDown" size={16} class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"/>
+ </div>
+ </div>
+ <div class="flex flex-col gap-1">
+ <label for="filter-sort" class="text-xs font-medium text-neutral-500">Urutkan</label>
+ <div class="relative">
+ <select
+ id="filter-sort"
+ class="w-full appearance-none rounded-xl border border-neutral-200 bg-white py-2 pl-3.5 pr-9 text-sm text-neutral-700 outline-none focus:border-accent-500"
+ >
+ <option value="popular">Populer</option>
+ <option value="price-asc">Harga Terendah</option>
+ <option value="price-desc">Harga Tertinggi</option>
+ <option value="year-desc">Tahun Terbaru</option>
+ </select>
+ <Icon name="ChevronDown" size={16} class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"/>
+ </div>
+ </div>
+ </div>
+
+ <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+ <p class="text-sm text-neutral-500"><span id="results-count">0</span> kendaraan ditemukan</p>
+ <button type="button" id="filter-reset" class="text-sm font-semibold text-accent-600 hover:underline">
+ Reset Filter
+ </button>
+ </div>
+</div>
+
+<style>
+  .filter-type-btn {
+    border: 1px solid rgb(229 229 229);
+    color: rgb(64 64 64);
+  }
+  .filter-type-btn.is-active {
+    background-color: var(--accent-600);
+    border-color: var(--accent-600);
+    color: white;
+  }
+</style>
+
+<script>
+ function parseRange(v: string) {
+ if (!v) return null;
+ const [min, max] = v.split('-').map(Number);
+ return { min, max };
+ }
+
+ function init() {
+ const grid = document.getElementById('vehicle-grid');
+ if (!grid) return;
+
+ const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-vehicle-card]'));
+ const typeBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.filter-type-btn'));
+ const brandSel = document.getElementById('filter-brand') as HTMLSelectElement | null;
+ const priceSel = document.getElementById('filter-price') as HTMLSelectElement | null;
+ const yearSel = document.getElementById('filter-year') as HTMLSelectElement | null;
+ const sortSel = document.getElementById('filter-sort') as HTMLSelectElement | null;
+ const resetBtn = document.getElementById('filter-reset');
+ const countEl = document.getElementById('results-count');
+ const searchInput = document.getElementById('catalog-search-input') as HTMLInputElement | null;
+ const emptyState = document.getElementById('catalog-empty-state');
+
+ if (!brandSel || !priceSel || !yearSel || !sortSel) return;
+
+ let activeType ='';
+
+ function apply() {
+ const brand = brandSel!.value;
+ const price = parseRange(priceSel!.value);
+ const year = yearSel!.value;
+ const query = (searchInput?.value ||'').trim().toLowerCase();
+ let visibleCount = 0;
+
+ cards.forEach((card) => {
+ const matchesType = !activeType || card.dataset.type === activeType;
+ const matchesBrand = !brand || card.dataset.brand === brand;
+ const cardPrice = Number(card.dataset.price);
+ const matchesPrice = !price || (cardPrice >= price.min && cardPrice <= price.max);
+ const matchesYear = !year || card.dataset.year === year;
+ const matchesQuery = !query || (card.dataset.name ||'').includes(query);
+ const visible = matchesType && matchesBrand && matchesPrice && matchesYear && matchesQuery;
+ card.style.display = visible ?'': 'none';
+ if (visible) visibleCount += 1;
+ });
+
+ if (countEl) countEl.textContent = String(visibleCount);
+ if (emptyState) emptyState.classList.toggle('hidden', visibleCount !== 0);
+
+ const sortValue = sortSel!.value;
+ const sorted = [...cards].sort((a, b) => {
+ if (sortValue ==='price-asc') return Number(a.dataset.price) - Number(b.dataset.price);
+ if (sortValue ==='price-desc') return Number(b.dataset.price) - Number(a.dataset.price);
+ if (sortValue ==='year-desc') return Number(b.dataset.year) - Number(a.dataset.year);
+ return Number(b.dataset.popular || 0) - Number(a.dataset.popular || 0);
+ });
+ sorted.forEach((card) => grid!.appendChild(card));
+ }
+
+ typeBtns.forEach((btn) => {
+ btn.addEventListener('click', () => {
+ activeType = btn.dataset.filterType ||'';
+ typeBtns.forEach((b) => b.classList.toggle('is-active', b === btn));
+ apply();
+ });
+ });
+
+ [brandSel, priceSel, yearSel, sortSel].forEach((el) => el.addEventListener('change', apply));
+ searchInput?.addEventListener('input', apply);
+
+ resetBtn?.addEventListener('click', () => {
+ activeType ='';
+ typeBtns.forEach((b) => b.classList.toggle('is-active', b.dataset.filterType ===''));
+ brandSel!.value ='';
+ priceSel!.value ='';
+ yearSel!.value ='';
+ sortSel!.value ='popular';
+ if (searchInput) searchInput.value ='';
+ apply();
+ });
+
+ // Preset brand filter from ?brand= query param (used by brand grid / search links)
+ const params = new URLSearchParams(location.search);
+ const presetBrand = params.get('brand');
+ if (presetBrand) brandSel.value = presetBrand;
+
+ apply();
+ }
+
+ init();
+</script>

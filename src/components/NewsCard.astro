@@ -1,0 +1,43 @@
+---
+import Icon from './Icon.astro';
+import { formatDate } from '../lib/format';
+
+export interface Props {
+ article: any;
+}
+
+const { article } = Astro.props;
+---
+
+<article
+ class="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-lg"
+ data-news-card
+ data-title={article.title.toLowerCase()}
+ data-category={article.category}
+>
+ <a href={`/news/${article.slug}`} class="block aspect-[16/10] overflow-hidden bg-neutral-100" aria-label={article.title}>
+ <img
+ src={article.image}
+ alt={article.title}
+ loading="lazy"
+ class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+ width="480"
+ height="300"
+ />
+ </a>
+ <div class="flex flex-1 flex-col gap-3 p-4">
+ <span class="inline-flex w-fit items-center rounded-full bg-accent-50 px-3 py-1 text-xs font-semibold text-accent-700">
+ {article.category}
+ </span>
+ <h3 class="text-base font-semibold leading-snug text-neutral-900">
+ <a href={`/news/${article.slug}`} class="hover:text-accent-600">
+ {article.title}
+ </a>
+ </h3>
+ <p class="line-clamp-2 text-sm text-neutral-500">{article.excerpt}</p>
+ <div class="mt-auto flex items-center gap-3 border-t border-neutral-100 pt-3 text-xs text-neutral-500">
+ <span class="inline-flex items-center gap-1"><Icon name="User" size={13} /> {article.author}</span>
+ <span class="inline-flex items-center gap-1"><Icon name="CalendarDays" size={13} /> {formatDate(article.date)}</span>
+ </div>
+ </div>
+</article>
